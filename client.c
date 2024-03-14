@@ -56,4 +56,5 @@ int main() {
            dataPoint.nponto, dataPoint.value, dataPoint.validity, dataPoint.source, dataPoint.detail, dataPoint.timestamp);
 
     close(sock);
-    return 
+    return 0; // Correct return statement indicating success.
+}
