@@ -38,8 +38,9 @@ int main() {
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(PORT);
 
-    if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
-        printf("\nInvalid address/ Address not supported \n");
+    // Connecting to the server running on localhost
+    if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
+        printf("\nInvalid address / Address not supported \n");
         return -1;
     }
 
@@ -52,9 +53,17 @@ int main() {
     AnalogDataPoint dataPoint;
     deserializeAnalogDataPoint(buffer, &dataPoint);
 
-    printf("Received Analog Data Point: nponto=%u, value=%.2f, validity=%s, source=%s, detail=%s, timestamp=%ld\n",
-           dataPoint.nponto, dataPoint.value, dataPoint.validity, dataPoint.source, dataPoint.detail, dataPoint.timestamp);
+    // Client-side output after receiving data
+    printf("Received Analog Data Point:\n");
+    printf("=========================================\n");
+    printf("Nponto: %u\n", dataPoint.nponto);
+    printf("Value: %.2f\n", dataPoint.value);
+    printf("Validity: %s\n", dataPoint.validity);
+    printf("Source: %s\n", dataPoint.source);
+    printf("Detail: %s\n", dataPoint.detail);
+    printf("Timestamp: %s\n", ctime(&dataPoint.timestamp));
+    printf("=========================================\n");
 
     close(sock);
-    return 0; // Correct return statement indicating success.
+    return 0;
 }
