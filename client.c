@@ -7,7 +7,7 @@
 #include <time.h>
 
 #define PORT 8080
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 2048
 
 typedef struct {
     unsigned int nponto;
@@ -16,13 +16,18 @@ typedef struct {
     char source[10];
     char detail[10];
     time_t timestamp;
+    char destination[20];
+    char messageType[20];
+    char protocolVersion[10];
 } AnalogDataPoint;
 
 void deserializeAnalogDataPoint(const char *buffer, AnalogDataPoint *dataPoint) {
-    sscanf(buffer, "%u|%f|%[^|]|%[^|]|%[^|]|%ld", 
+    sscanf(buffer, "%u|%f|%9[^|]|%9[^|]|%9[^|]|%ld|%19[^|]|%19[^|]|%9s", 
            &dataPoint->nponto, &dataPoint->value, 
            dataPoint->validity, dataPoint->source, 
-           dataPoint->detail, &dataPoint->timestamp);
+           dataPoint->detail, &dataPoint->timestamp,
+           dataPoint->destination, dataPoint->messageType,
+           dataPoint->protocolVersion);
 }
 
 int main() {
@@ -38,9 +43,8 @@ int main() {
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(PORT);
 
-    // Connecting to the server running on localhost
     if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
-        printf("\nInvalid address / Address not supported \n");
+        printf("\nInvalid address/ Address not supported \n");
         return -1;
     }
 
@@ -53,16 +57,21 @@ int main() {
     AnalogDataPoint dataPoint;
     deserializeAnalogDataPoint(buffer, &dataPoint);
 
-    // Client-side output after receiving data
-    printf("Received Analog Data Point:\n");
-    printf("=========================================\n");
-    printf("Nponto: %u\n", dataPoint.nponto);
-    printf("Value: %.2f\n", dataPoint.value);
-    printf("Validity: %s\n", dataPoint.validity);
-    printf("Source: %s\n", dataPoint.source);
-    printf("Detail: %s\n", dataPoint.detail);
-    printf("Timestamp: %s\n", ctime(&dataPoint.timestamp));
-    printf("=========================================\n");
+    char formattedTime[30];
+    strftime(formattedTime, 30, "%Y-%m-%d %H:%M:%S", localtime(&dataPoint.timestamp));
+
+    printf("Received ICCP-like Message:\n");
+    printf("=================================================\n");
+    printf("Transaction ID: %u\n", dataPoint.nponto);
+    printf("Data Value: %.2f V\n", dataPoint.value);
+    printf("Data Quality: %s\n", dataPoint.validity);
+    printf("Source Substation: %s\n", dataPoint.source);
+    printf("Data Details: %s\n", dataPoint.detail);
+    printf("Timestamp: %s\n", formattedTime);
+    printf("Destination: %s\n", dataPoint.destination);
+    printf("Message Type: %s\n", dataPoint.messageType);
+    printf("ICCP Protocol Version: %s\n", dataPoint.protocolVersion);
+    printf("=================================================\n");
 
     close(sock);
     return 0;
